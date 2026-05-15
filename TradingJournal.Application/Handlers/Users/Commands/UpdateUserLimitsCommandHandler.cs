@@ -1,3 +1,4 @@
+using TradingJournal.Application.Helper;
 using TradingJournal.Contract.Abstraction;
 using TradingJournal.Contract.Common;
 using TradingJournal.Contract.DTOs;
@@ -26,14 +27,7 @@ namespace TradingJournal.Application.Handlers.Users.Commands
 
             await _userRepository.UpdateAsync(user);
 
-            return BaseResponse<UserDto>.Ok(new UserDto
-            {
-                Id = user.Id,
-                Email = user.Email,
-                DisplayName = user.DisplayName,
-                DailyLossLimit = user.DailyLossLimit,
-                DailyProfitTarget = user.DailyProfitTarget
-            });
+            return BaseResponse<UserDto>.Ok(user.ToDto());
         }
     }
 }

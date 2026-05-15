@@ -1,3 +1,4 @@
+using TradingJournal.Application.Helper;
 using TradingJournal.Contract.Abstraction;
 using TradingJournal.Contract.Common;
 using TradingJournal.Contract.DTOs;
@@ -21,14 +22,7 @@ namespace TradingJournal.Application.Handlers.Users.Commands
             // Check if user already exists
             var existingUser = await _userRepository.GetOneAsync(filter: u => u.Auth0Id == request.Auth0Id);
             if (existingUser is not null)
-                return BaseResponse<UserDto>.Ok(new UserDto
-                {
-                    Id = existingUser.Id,
-                    Email = existingUser.Email,
-                    DisplayName = existingUser.DisplayName,
-                    DailyLossLimit = existingUser.DailyLossLimit,
-                    DailyProfitTarget = existingUser.DailyProfitTarget
-                });
+                return BaseResponse<UserDto>.Ok(existingUser.ToDto());
 
             var user = new User
             {
@@ -43,14 +37,7 @@ namespace TradingJournal.Application.Handlers.Users.Commands
 
             await _userRepository.AddAsync(user);
 
-            return BaseResponse<UserDto>.Created(new UserDto
-            {
-                Id = user.Id,
-                Email = user.Email,
-                DisplayName = user.DisplayName,
-                DailyLossLimit = user.DailyLossLimit,
-                DailyProfitTarget = user.DailyProfitTarget
-            });
+            return BaseResponse<UserDto>.Created(user.ToDto());
         }
     }
 }

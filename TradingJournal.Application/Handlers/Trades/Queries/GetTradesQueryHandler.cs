@@ -1,3 +1,4 @@
+using TradingJournal.Application.Helper;
 using TradingJournal.Contract.Abstraction;
 using TradingJournal.Contract.Common;
 using TradingJournal.Contract.DTOs;
@@ -35,33 +36,7 @@ namespace TradingJournal.Application.Handlers.Trades.Queries
                 pageSize: request.PageSize,
                 pageNumber: request.PageNumber);
 
-            var result = trades.Select(t => new TradeDto
-            {
-                Id = t.Id,
-                Ticker = t.Ticker,
-                OptionType = t.OptionType,
-                Strategy = t.Strategy,
-                EntryPrice = t.EntryPrice,
-                ExitPrice = t.ExitPrice,
-                Quantity = t.Quantity,
-                Dte = t.Dte,
-                TradeDate = t.TradeDate,
-                Pnl = t.Pnl,
-                Notes = t.Notes,
-                IbkrScreenshotUrl = t.IbkrScreenshotUrl,
-                ChartScreenshotUrl = t.ChartScreenshotUrl,
-                AiScore = t.AiScore,
-                AiFeedback = t.AiFeedback,
-                HasStopLoss = t.HasStopLoss,
-                HasProfitTarget = t.HasProfitTarget,
-                HasPositionSizing = t.HasPositionSizing,
-                HasAppropriateDte = t.HasAppropriateDte,
-                TickedScore = t.TickedScore,
-                DisciplineScore = t.DisciplineScore,
-                CreatedAt = t.CreatedAt
-            });
-
-            return BaseResponse<IEnumerable<TradeDto>>.Ok(result);
+            return BaseResponse<IEnumerable<TradeDto>>.Ok(trades.Select(t => t.ToDto()));
         }
     }
 }

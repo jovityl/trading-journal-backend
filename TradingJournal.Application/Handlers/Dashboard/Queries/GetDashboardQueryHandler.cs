@@ -1,3 +1,4 @@
+using TradingJournal.Application.Helper;
 using TradingJournal.Contract.Abstraction;
 using TradingJournal.Contract.Common;
 using TradingJournal.Contract.DTOs;
@@ -80,31 +81,8 @@ namespace TradingJournal.Application.Handlers.Dashboard.Queries
             var recentTrades = allTrades
                 .OrderByDescending(t => t.CreatedAt)
                 .Take(5)
-                .Select(t => new TradeDto
-                {
-                    Id = t.Id,
-                    Ticker = t.Ticker,
-                    OptionType = t.OptionType,
-                    Strategy = t.Strategy,
-                    EntryPrice = t.EntryPrice,
-                    ExitPrice = t.ExitPrice,
-                    Quantity = t.Quantity,
-                    Dte = t.Dte,
-                    TradeDate = t.TradeDate,
-                    Pnl = t.Pnl,
-                    Notes = t.Notes,
-                    IbkrScreenshotUrl = t.IbkrScreenshotUrl,
-                    ChartScreenshotUrl = t.ChartScreenshotUrl,
-                    AiScore = t.AiScore,
-                    AiFeedback = t.AiFeedback,
-                    HasStopLoss = t.HasStopLoss,
-                    HasProfitTarget = t.HasProfitTarget,
-                    HasPositionSizing = t.HasPositionSizing,
-                    HasAppropriateDte = t.HasAppropriateDte,
-                    TickedScore = t.TickedScore,
-                    DisciplineScore = t.DisciplineScore,
-                    CreatedAt = t.CreatedAt
-                }).ToList();
+                .Select(t => t.ToDto())
+                .ToList();
 
             return BaseResponse<DashboardDto>.Ok(new DashboardDto
             {
