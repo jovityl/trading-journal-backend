@@ -1,0 +1,125 @@
+using TradingJournal.Contract.Abstraction;
+using TradingJournal.Contract.Common;
+using TradingJournal.Contract.DTOs;
+using TradingJournal.Domain.Entities;
+using TradingJournal.Domain.IRepository;
+using static TradingJournal.Contract.Message.Dashboard.Queries;
+
+namespace TradingJournal.Application.Handlers.Dashboard.Queries
+{
+    public class GetDashboardQueryHandler : IQueryHandler<GetDashboardQuery, BaseResponse<DashboardDto>>
+    {
+        private readonly ITradeRepository _tradeRepository;
+        private readonly IUserRepository _userRepository;
+
+        public GetDashboardQueryHandler(
+            ITradeRepository tradeRepository,
+            IUserRepository userRepository)
+        {
+            _tradeRepository = tradeRepository;
+            _userRepository = userRepository;
+        }
+
+        public async Task<BaseResponse<DashboardDto>> Handle(GetDashboardQuery request, CancellationToken cancellationToken)
+        {
+            var user = await _userRepository.GetOneAsync(filter: u => u.Auth0Id == request.Auth0Id);
+            if (user is null)
+                return BaseResponse<DashboardDto>.Unauthorized("User not found.");
+
+            var today = DateTime.UtcNow.Date;
+            var startOfMonth = new DateTime(today.Year, today.Month, 1);
+
+            // Get all trades for this user
+            var allTrades = await _tradeRepository.GetListAsyncUntracked<Trade>(
+                filter: t => t.UserId == user.Id);
+
+            var todayTrades = allTrades.Where(t => t.TradeDate.Date == today).ToList();
+            var monthTrades = allTrades.Where(t => t.TradeDate >= startOfMonth).ToList();
+
+            // Today's P&L
+            var todayPnl = todayTrades.Sum(t => t.Pnl);
+
+            // Monthly P&L
+            var monthlyPnl = monthTrades.Sum(t => t.Pnl);
+
+            // Win rate
+            var totalTrades = allTrades.Count();
+            var winningTrades = allTrades.Count(t => t.Pnl > 0);
+            var winRate = totalTrades > 0 ? (double)winningTrades / totalTrades * 100 : 0;
+
+            // Average discipline score
+            var avgScore = totalTrades > 0 ? allTrades.Average(t => t.DisciplineScore) : 0;
+
+            // Daily limit alerts
+            var isDailyLossLimitHit = todayPnl <= user.DailyLossLimit;
+            var isDailyProfitTargetHit = todayPnl >= user.DailyProfitTarget;
+
+            // P&L chart (last 30 days)
+            var pnlChart = allTrades
+                .Where(t => t.TradeDate >= today.AddDays(-30))
+                .GroupBy(t => t.TradeDate.Date)
+                .OrderBy(g => g.Key)
+                .Select(g => new PnlChartDto
+                {
+                    Date = g.Key.ToString("yyyy-MM-dd"),
+                    Pnl = g.Sum(t => t.Pnl)
+                }).ToList();
+
+            // Score chart (last 30 days)
+            var scoreChart = allTrades
+                .Where(t => t.TradeDate >= today.AddDays(-30))
+                .GroupBy(t => t.TradeDate.Date)
+                .OrderBy(g => g.Key)
+                .Select(g => new ScoreChartDto
+                {
+                    Date = g.Key.ToString("yyyy-MM-dd"),
+                    AverageScore = g.Average(t => t.DisciplineScore)
+                }).ToList();
+
+            // Recent trades (last 5)
+            var recentTrades = allTrades
+                .OrderByDescending(t => t.TradeDate)
+                .Take(5)
+                .Select(t => new TradeDto
+                {
+                    Id = t.Id,
+                    Ticker = t.Ticker,
+                    OptionType = t.OptionType,
+                    Strategy = t.Strategy,
+                    EntryPrice = t.EntryPrice,
+                    ExitPrice = t.ExitPrice,
+                    Quantity = t.Quantity,
+                    Dte = t.Dte,
+                    TradeDate = t.TradeDate,
+                    Pnl = t.Pnl,
+                    Notes = t.Notes,
+                    IbkrScreenshotUrl = t.IbkrScreenshotUrl,
+                    ChartScreenshotUrl = t.ChartScreenshotUrl,
+                    AiScore = t.AiScore,
+                    AiFeedback = t.AiFeedback,
+                    HasStopLoss = t.HasStopLoss,
+                    HasProfitTarget = t.HasProfitTarget,
+                    HasPositionSizing = t.HasPositionSizing,
+                    HasAppropriateDte = t.HasAppropriateDte,
+                    TickedScore = t.TickedScore,
+                    DisciplineScore = t.DisciplineScore,
+                    CreatedAt = t.CreatedAt
+                }).ToList();
+
+            return BaseResponse<DashboardDto>.Ok(new DashboardDto
+            {
+                TodayPnl = todayPnl,
+                MonthlyPnl = monthlyPnl,
+                WinRate = Math.Round(winRate, 2),
+                AverageDisciplineScore = Math.Round(avgScore, 2),
+                IsDailyLossLimitHit = isDailyLossLimitHit,
+                IsDailyProfitTargetHit = isDailyProfitTargetHit,
+                DailyLossLimit = user.DailyLossLimit,
+                DailyProfitTarget = user.DailyProfitTarget,
+                PnlChart = pnlChart,
+                ScoreChart = scoreChart,
+                RecentTrades = recentTrades
+            });
+        }
+    }
+}

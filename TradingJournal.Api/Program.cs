@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using TradingJournal.Application.Interfaces;
 using TradingJournal.Domain.Interfaces;
 using TradingJournal.Domain.IRepository;
@@ -32,6 +34,22 @@ builder.Services.AddScoped<ITradeRepository, TradeRepository>();
 // Services
 builder.Services.AddScoped<IStorageService, LocalStorageService>();
 
+// Auth0
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = $"https://{config["Auth0:Domain"]}/";
+        options.Audience = config["Auth0:Audience"];
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true
+        };
+    });
+
+builder.Services.AddAuthorization();
+
 // CORS
 builder.Services.AddCors(options =>
 {
@@ -50,6 +68,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors();
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

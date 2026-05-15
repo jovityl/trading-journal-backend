@@ -1,5 +1,7 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using TradingJournal.Contract.Common;
 using TradingJournal.Contract.DTOs;
 using static TradingJournal.Contract.Message.Trades.Commands;
@@ -8,6 +10,7 @@ using static TradingJournal.Contract.Message.Trades.Request;
 
 namespace TradingJournal.Api.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/v1/[controller]")]
     public class TradesController : ControllerBase
@@ -43,8 +46,7 @@ namespace TradingJournal.Api.Controllers
         [HttpPost]
         public async Task<BaseResponse<TradeDto>> CreateTrade([FromForm] CreateTradeRequest request)
         {
-            // TODO: replace with actual Auth0Id from JWT token after auth is set up
-            var auth0Id = "auth0|test123";
+            var auth0Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
 
             var command = new CreateTradeCommand(
                 request.Ticker,
@@ -69,8 +71,7 @@ namespace TradingJournal.Api.Controllers
         [HttpDelete("{id:guid}")]
         public async Task<BaseResponse<bool>> DeleteTrade([FromRoute] Guid id)
         {
-            // TODO: replace with actual Auth0Id from JWT token after auth is set up
-            var auth0Id = "auth0|test123";
+            var auth0Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
             var command = new DeleteTradeCommand(id, auth0Id);
             return await _sender.Send(command);
         }
