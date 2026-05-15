@@ -1,0 +1,26 @@
+# Build results
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# .NET
+*.dll
+*.pdb
+
+# User secrets
+secrets.json
+
+# Environment files
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Claude
+.claude/

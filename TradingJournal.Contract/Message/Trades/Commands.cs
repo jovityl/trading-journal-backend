@@ -1,0 +1,30 @@
+using Microsoft.AspNetCore.Http;
+using TradingJournal.Contract.Abstraction;
+using TradingJournal.Contract.Common;
+using TradingJournal.Contract.DTOs;
+
+namespace TradingJournal.Contract.Message.Trades
+{
+    public static class Commands
+    {
+        public record CreateTradeCommand(
+            string Ticker,
+            string OptionType,
+            string Strategy,
+            decimal EntryPrice,
+            decimal ExitPrice,
+            int Quantity,
+            int Dte,
+            DateTime TradeDate,
+            string? Notes,
+            bool HasStopLoss,
+            bool HasProfitTarget,
+            bool HasPositionSizing,
+            bool HasAppropriateDte,
+            IFormFile? IbkrScreenshot,
+            IFormFile? ChartScreenshot,
+            string Auth0Id) : ICommand<BaseResponse<TradeDto>>;
+
+        public record DeleteTradeCommand(Guid Id, string Auth0Id) : ICommand<BaseResponse<bool>>;
+    }
+}

@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "TradingJournal.Application": {
+      "commandName": "Project"
+    }
+  }
+}
