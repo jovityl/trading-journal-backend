@@ -3,7 +3,6 @@ namespace TradingJournal.Contract.Message.Users
     public static class Request
     {
         public record CreateUserRequest(
-            string Auth0Id,
             string Email,
             string DisplayName);
 

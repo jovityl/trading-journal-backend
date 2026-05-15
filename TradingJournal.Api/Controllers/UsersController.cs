@@ -5,6 +5,7 @@ using System.Security.Claims;
 using TradingJournal.Contract.Common;
 using TradingJournal.Contract.DTOs;
 using static TradingJournal.Contract.Message.Users.Commands;
+using static TradingJournal.Contract.Message.Users.Queries;
 using static TradingJournal.Contract.Message.Users.Request;
 
 namespace TradingJournal.Api.Controllers
@@ -19,6 +20,14 @@ namespace TradingJournal.Api.Controllers
         public UsersController(ISender sender)
         {
             _sender = sender;
+        }
+
+        [HttpGet("me")]
+        public async Task<BaseResponse<UserDto>> GetMe()
+        {
+            var auth0Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            var query = new GetMeQuery(auth0Id);
+            return await _sender.Send(query);
         }
 
         [HttpPost]
