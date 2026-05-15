@@ -33,6 +33,7 @@ builder.Services.AddScoped<ITradeRepository, TradeRepository>();
 
 // Services
 builder.Services.AddScoped<IStorageService, LocalStorageService>();
+builder.Services.AddHttpClient<IAiScoringService, ClaudeAiScoringService>();
 
 // Auth0
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

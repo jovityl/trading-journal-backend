@@ -50,9 +50,9 @@ namespace TradingJournal.Application.Handlers.Dashboard.Queries
             // Average discipline score
             var avgScore = totalTrades > 0 ? allTrades.Average(t => t.DisciplineScore) : 0;
 
-            // Daily limit alerts
-            var isDailyLossLimitHit = todayPnl <= user.DailyLossLimit;
-            var isDailyProfitTargetHit = todayPnl >= user.DailyProfitTarget;
+            // Daily limit alerts (only if limits are actually set)
+            var isDailyLossLimitHit = user.DailyLossLimit < 0 && todayPnl <= user.DailyLossLimit;
+            var isDailyProfitTargetHit = user.DailyProfitTarget > 0 && todayPnl >= user.DailyProfitTarget;
 
             // P&L chart (last 30 days)
             var pnlChart = allTrades
@@ -76,9 +76,9 @@ namespace TradingJournal.Application.Handlers.Dashboard.Queries
                     AverageScore = g.Average(t => t.DisciplineScore)
                 }).ToList();
 
-            // Recent trades (last 5)
+            // Recent trades (last 5 logged)
             var recentTrades = allTrades
-                .OrderByDescending(t => t.TradeDate)
+                .OrderByDescending(t => t.CreatedAt)
                 .Take(5)
                 .Select(t => new TradeDto
                 {

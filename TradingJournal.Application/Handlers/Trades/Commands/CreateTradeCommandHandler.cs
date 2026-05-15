@@ -13,15 +13,18 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
         private readonly ITradeRepository _tradeRepository;
         private readonly IUserRepository _userRepository;
         private readonly IStorageService _storageService;
+        private readonly IAiScoringService _aiScoringService;
 
         public CreateTradeCommandHandler(
             ITradeRepository tradeRepository,
             IUserRepository userRepository,
-            IStorageService storageService)
+            IStorageService storageService,
+            IAiScoringService aiScoringService)
         {
             _tradeRepository = tradeRepository;
             _userRepository = userRepository;
             _storageService = storageService;
+            _aiScoringService = aiScoringService;
         }
 
         public async Task<BaseResponse<TradeDto>> Handle(CreateTradeCommand request, CancellationToken cancellationToken)
@@ -53,17 +56,42 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
                     cancellationToken);
             }
 
-            // Upload chart screenshot if provided
+            // Upload chart screenshot + AI scoring if provided
             string? chartScreenshotUrl = null;
+            int aiScore = 0;
+            string? aiFeedback = null;
+
             if (request.ChartScreenshot is not null)
             {
-                var stream = request.ChartScreenshot.OpenReadStream();
+                // Read into memory once so we can both upload and analyze
+                using var memoryStream = new MemoryStream();
+                await request.ChartScreenshot.OpenReadStream().CopyToAsync(memoryStream, cancellationToken);
+
+                // Upload
+                memoryStream.Position = 0;
                 chartScreenshotUrl = await _storageService.UploadFileAsync(
-                    stream,
+                    memoryStream,
                     request.ChartScreenshot.FileName,
                     request.ChartScreenshot.ContentType,
                     cancellationToken);
+
+                // AI scoring
+                memoryStream.Position = 0;
+                var aiResult = await _aiScoringService.ScoreChartAsync(
+                    memoryStream,
+                    request.ChartScreenshot.ContentType,
+                    request.Strategy,
+                    request.EntryPrice,
+                    request.ExitPrice,
+                    request.OptionType,
+                    request.Dte,
+                    cancellationToken);
+
+                aiScore = aiResult.Score;
+                aiFeedback = aiResult.Feedback;
             }
+
+            var disciplineScore = tickedScore + aiScore; // out of 100
 
             var trade = new Trade
             {
@@ -86,9 +114,9 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
                 HasPositionSizing = request.HasPositionSizing,
                 HasAppropriateDte = request.HasAppropriateDte,
                 TickedScore = tickedScore,
-                AiScore = 0,        // AI score added later when chart is analyzed
-                AiFeedback = null,
-                DisciplineScore = tickedScore, // Will be updated after AI scoring
+                AiScore = aiScore,
+                AiFeedback = aiFeedback,
+                DisciplineScore = disciplineScore,
                 CreatedAt = DateTime.UtcNow
             };
 

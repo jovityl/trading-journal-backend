@@ -32,14 +32,16 @@ namespace TradingJournal.Api.Controllers
             [FromQuery] int? pageSize,
             [FromQuery] int? pageNumber)
         {
-            var query = new GetTradesQuery(ticker, optionType, strategy, fromDate, toDate, pageSize, pageNumber);
+            var auth0Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            var query = new GetTradesQuery(auth0Id, ticker, optionType, strategy, fromDate, toDate, pageSize, pageNumber);
             return await _sender.Send(query);
         }
 
         [HttpGet("{id:guid}")]
         public async Task<BaseResponse<TradeDto>> GetTradeById([FromRoute] Guid id)
         {
-            var query = new GetTradeByIdQuery(id);
+            var auth0Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            var query = new GetTradeByIdQuery(id, auth0Id);
             return await _sender.Send(query);
         }
 
@@ -68,6 +70,22 @@ namespace TradingJournal.Api.Controllers
 
             return await _sender.Send(command);
         }
+        [HttpPost("seed")]
+        public async Task<BaseResponse<int>> SeedTrades()
+        {
+            var auth0Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            var command = new SeedTradesCommand(auth0Id);
+            return await _sender.Send(command);
+        }
+
+        [HttpDelete("all")]
+        public async Task<BaseResponse<int>> DeleteAllTrades()
+        {
+            var auth0Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            var command = new DeleteAllTradesCommand(auth0Id);
+            return await _sender.Send(command);
+        }
+
         [HttpDelete("{id:guid}")]
         public async Task<BaseResponse<bool>> DeleteTrade([FromRoute] Guid id)
         {
