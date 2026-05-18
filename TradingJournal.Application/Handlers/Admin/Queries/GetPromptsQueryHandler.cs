@@ -19,12 +19,14 @@ namespace TradingJournal.Application.Handlers.Admin.Queries
         public async Task<BaseResponse<List<PromptDto>>> Handle(GetPromptsQuery request, CancellationToken cancellationToken)
         {
             var prompts = await _promptRepository.GetListAsyncUntracked<Prompt>();
-            var result = prompts.Select(p => new PromptDto
-            {
-                Key = p.Key,
-                Content = p.Content,
-                UpdatedAt = p.UpdatedAt
-            }).ToList();
+            var result = prompts
+                .OrderBy(p => p.Key)   // stable alphabetical order so UI doesn't jump after edits
+                .Select(p => new PromptDto
+                {
+                    Key = p.Key,
+                    Content = p.Content,
+                    UpdatedAt = p.UpdatedAt
+                }).ToList();
 
             return BaseResponse<List<PromptDto>>.Ok(result);
         }

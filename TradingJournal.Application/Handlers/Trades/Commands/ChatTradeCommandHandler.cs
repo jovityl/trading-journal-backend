@@ -12,6 +12,7 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
         private readonly ITradeRepository _tradeRepository;
         private readonly IUserRepository _userRepository;
         private readonly IChatService _chatService;
+        private readonly IChatModerationService _moderationService;
         private readonly IPromptService _promptService;
         private readonly ITokenUsageService _tokenUsageService;
 
@@ -19,12 +20,14 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
             ITradeRepository tradeRepository,
             IUserRepository userRepository,
             IChatService chatService,
+            IChatModerationService moderationService,
             IPromptService promptService,
             ITokenUsageService tokenUsageService)
         {
             _tradeRepository = tradeRepository;
             _userRepository = userRepository;
             _chatService = chatService;
+            _moderationService = moderationService;
             _promptService = promptService;
             _tokenUsageService = tokenUsageService;
         }
@@ -39,6 +42,21 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
                 filter: t => t.Id == request.TradeId && t.UserId == user.Id);
             if (trade is null)
                 return BaseResponse<string>.NotFound("Trade not found.");
+
+            // Cheap pre-check: classify the latest user message
+            var latestUserMessage = request.Messages.LastOrDefault(m => m.Role == "user")?.Content ?? "";
+            if (!string.IsNullOrWhiteSpace(latestUserMessage))
+            {
+                var moderation = await _moderationService.IsOnTopicAsync(latestUserMessage, cancellationToken);
+                await _tokenUsageService.RecordAsync(user.Id, "moderation", moderation.Usage, cancellationToken);
+
+                if (!moderation.IsOnTopic)
+                {
+                    return BaseResponse<string>.Ok(
+                        "I can only help with questions about trading or this specific trade. " +
+                        "Try asking about your entry timing, strategy, discipline, or what to do differently next time.");
+                }
+            }
 
             var template = await _promptService.GetAsync(PromptKeys.ChatSystem, cancellationToken);
             var systemPrompt = FillTradePlaceholders(template, trade);

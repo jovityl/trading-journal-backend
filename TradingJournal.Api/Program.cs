@@ -40,6 +40,7 @@ builder.Services.AddSingleton<IPromptService, PromptService>();
 builder.Services.AddScoped<ITokenUsageService, TokenUsageService>();
 builder.Services.AddHttpClient<IAiScoringService, ClaudeAiScoringService>();
 builder.Services.AddHttpClient<IChatService, ClaudeChatService>();
+builder.Services.AddHttpClient<IChatModerationService, ClaudeChatModerationService>();
 
 // Auth0
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
