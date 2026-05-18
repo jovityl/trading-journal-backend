@@ -33,6 +33,7 @@ builder.Services.AddScoped<ITradeRepository, TradeRepository>();
 
 // Services
 builder.Services.AddScoped<IStorageService, LocalStorageService>();
+builder.Services.AddSingleton<IAdminSettings, AdminSettings>();
 builder.Services.AddHttpClient<IAiScoringService, ClaudeAiScoringService>();
 builder.Services.AddHttpClient<IChatService, ClaudeChatService>();
 
@@ -50,7 +51,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.Requirements.Add(new TradingJournal.Api.Authorization.AdminRequirement()));
+});
+builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, TradingJournal.Api.Authorization.AdminRequirementHandler>();
 
 // CORS
 builder.Services.AddCors(options =>

@@ -7,5 +7,6 @@ namespace TradingJournal.Contract.DTOs
         public string DisplayName { get; set; } = string.Empty;
         public int DailyLossLimit { get; set; }
         public int DailyProfitTarget { get; set; }
+        public bool IsAdmin { get; set; }
     }
 }
