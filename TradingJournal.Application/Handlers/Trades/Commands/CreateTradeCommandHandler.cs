@@ -15,17 +15,20 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
         private readonly IUserRepository _userRepository;
         private readonly IStorageService _storageService;
         private readonly IAiScoringService _aiScoringService;
+        private readonly ITokenUsageService _tokenUsageService;
 
         public CreateTradeCommandHandler(
             ITradeRepository tradeRepository,
             IUserRepository userRepository,
             IStorageService storageService,
-            IAiScoringService aiScoringService)
+            IAiScoringService aiScoringService,
+            ITokenUsageService tokenUsageService)
         {
             _tradeRepository = tradeRepository;
             _userRepository = userRepository;
             _storageService = storageService;
             _aiScoringService = aiScoringService;
+            _tokenUsageService = tokenUsageService;
         }
 
         public async Task<BaseResponse<TradeDto>> Handle(CreateTradeCommand request, CancellationToken cancellationToken)
@@ -92,6 +95,9 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
 
                 aiScore = aiResult.Score;
                 aiFeedback = aiResult.Feedback;
+
+                // record token usage
+                await _tokenUsageService.RecordAsync(user.Id, "scoring", aiResult.Usage, cancellationToken);
             }
 
             var disciplineScore = tickedScore + aiScore; // out of 100

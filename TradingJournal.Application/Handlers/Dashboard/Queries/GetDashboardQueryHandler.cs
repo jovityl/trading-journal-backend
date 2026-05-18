@@ -58,7 +58,7 @@ namespace TradingJournal.Application.Handlers.Dashboard.Queries
             var isDailyLossLimitHit = user.DailyLossLimit < 0 && todayPnl <= user.DailyLossLimit;
             var isDailyProfitTargetHit = user.DailyProfitTarget > 0 && todayPnl >= user.DailyProfitTarget;
 
-            // P&L chart (last 30 days)
+            // P&L chart (last 30 days) — daily values
             var pnlChart = allTrades
                 .Where(t => t.TradeDate >= today.AddDays(-30))
                 .GroupBy(t => t.TradeDate.Date)
@@ -68,6 +68,19 @@ namespace TradingJournal.Application.Handlers.Dashboard.Queries
                     Date = g.Key.ToString("yyyy-MM-dd"),
                     Pnl = g.Sum(t => t.Pnl)
                 }).ToList();
+
+            // Equity curve — cumulative P&L across ALL trades (history of account growth)
+            var equityCurve = new List<PnlChartDto>();
+            decimal running = 0;
+            foreach (var group in allTrades.GroupBy(t => t.TradeDate.Date).OrderBy(g => g.Key))
+            {
+                running += group.Sum(t => t.Pnl);
+                equityCurve.Add(new PnlChartDto
+                {
+                    Date = group.Key.ToString("yyyy-MM-dd"),
+                    Pnl = running
+                });
+            }
 
             // Score chart (last 30 days)
             var scoreChart = allTrades
@@ -99,6 +112,7 @@ namespace TradingJournal.Application.Handlers.Dashboard.Queries
                 DailyLossLimit = user.DailyLossLimit,
                 DailyProfitTarget = user.DailyProfitTarget,
                 PnlChart = pnlChart,
+                EquityCurve = equityCurve,
                 ScoreChart = scoreChart,
                 RecentTrades = recentTrades
             });

@@ -31,11 +31,13 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITradeRepository, TradeRepository>();
 builder.Services.AddScoped<IPromptRepository, PromptRepository>();
+builder.Services.AddScoped<ITokenUsageRepository, TokenUsageRepository>();
 
 // Services
 builder.Services.AddScoped<IStorageService, LocalStorageService>();
 builder.Services.AddSingleton<IAdminSettings, AdminSettings>();
 builder.Services.AddSingleton<IPromptService, PromptService>();
+builder.Services.AddScoped<ITokenUsageService, TokenUsageService>();
 builder.Services.AddHttpClient<IAiScoringService, ClaudeAiScoringService>();
 builder.Services.AddHttpClient<IChatService, ClaudeChatService>();
 

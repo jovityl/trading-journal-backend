@@ -26,6 +26,12 @@ namespace TradingJournal.Api.Controllers
             return await _sender.Send(new GetPromptsQuery());
         }
 
+        [HttpGet("usage")]
+        public async Task<BaseResponse<UsageSummaryDto>> GetUsage()
+        {
+            return await _sender.Send(new GetUsageQuery());
+        }
+
         public record UpdatePromptBody(string Content);
 
         [HttpPut("prompts/{key}")]

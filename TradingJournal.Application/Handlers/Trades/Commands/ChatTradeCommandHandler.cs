@@ -13,17 +13,20 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
         private readonly IUserRepository _userRepository;
         private readonly IChatService _chatService;
         private readonly IPromptService _promptService;
+        private readonly ITokenUsageService _tokenUsageService;
 
         public ChatTradeCommandHandler(
             ITradeRepository tradeRepository,
             IUserRepository userRepository,
             IChatService chatService,
-            IPromptService promptService)
+            IPromptService promptService,
+            ITokenUsageService tokenUsageService)
         {
             _tradeRepository = tradeRepository;
             _userRepository = userRepository;
             _chatService = chatService;
             _promptService = promptService;
+            _tokenUsageService = tokenUsageService;
         }
 
         public async Task<BaseResponse<string>> Handle(ChatTradeCommand request, CancellationToken cancellationToken)
@@ -67,14 +70,16 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
                     .Select(m => new ChatMessage { Role = m.Role, Content = m.Content })
                     .ToList();
 
-                var reply = await _chatService.ChatAsync(
+                var chatResult = await _chatService.ChatAsync(
                     systemPrompt,
                     imageStream,
                     imageContentType,
                     messages,
                     cancellationToken);
 
-                return BaseResponse<string>.Ok(reply);
+                await _tokenUsageService.RecordAsync(user.Id, "chat", chatResult.Usage, cancellationToken);
+
+                return BaseResponse<string>.Ok(chatResult.Reply);
             }
             finally
             {

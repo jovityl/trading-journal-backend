@@ -18,7 +18,7 @@ namespace TradingJournal.Infrastructure.Services
             _apiKey = config["Anthropic:ApiKey"] ?? throw new InvalidOperationException("Anthropic:ApiKey is not configured.");
         }
 
-        public async Task<string> ChatAsync(
+        public async Task<ChatResult> ChatAsync(
             string systemPrompt,
             Stream? contextImageStream,
             string? contextImageContentType,
@@ -26,7 +26,7 @@ namespace TradingJournal.Infrastructure.Services
             CancellationToken cancellationToken = default)
         {
             if (messages.Count == 0)
-                return "No message provided.";
+                return new ChatResult { Reply = "No message provided." };
 
             // Build the messages array. For the FIRST user message, prepend the chart image (cached).
             var formattedMessages = new List<object>();
@@ -96,7 +96,7 @@ namespace TradingJournal.Infrastructure.Services
             var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
 
             if (!response.IsSuccessStatusCode)
-                return $"Chat failed: {response.StatusCode}";
+                return new ChatResult { Reply = $"Chat failed: {response.StatusCode}" };
 
             try
             {
@@ -105,11 +105,14 @@ namespace TradingJournal.Infrastructure.Services
                     .GetProperty("content")[0]
                     .GetProperty("text")
                     .GetString() ?? "";
-                return text;
+
+                var usage = ClaudeAiScoringService.ParseUsage(doc.RootElement);
+                usage.Model = Model;
+                return new ChatResult { Reply = text, Usage = usage };
             }
             catch (Exception ex)
             {
-                return $"Failed to parse response: {ex.Message}";
+                return new ChatResult { Reply = $"Failed to parse response: {ex.Message}" };
             }
         }
     }

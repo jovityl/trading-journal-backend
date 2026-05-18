@@ -119,7 +119,8 @@ namespace TradingJournal.Infrastructure.Services
                 return new AiScoreResult
                 {
                     Score = inner.RootElement.GetProperty("score").GetInt32(),
-                    Feedback = inner.RootElement.GetProperty("feedback").GetString() ?? ""
+                    Feedback = inner.RootElement.GetProperty("feedback").GetString() ?? "",
+                    Usage = ParseUsage(doc.RootElement)
                 };
             }
             catch (Exception ex)
@@ -130,6 +131,19 @@ namespace TradingJournal.Infrastructure.Services
                     Feedback = $"Failed to parse AI response: {ex.Message}"
                 };
             }
+        }
+
+        internal static AiUsage ParseUsage(JsonElement root)
+        {
+            var usage = new AiUsage { Provider = "anthropic", Model = Model };
+            if (root.TryGetProperty("usage", out var u))
+            {
+                if (u.TryGetProperty("input_tokens", out var i)) usage.InputTokens = i.GetInt32();
+                if (u.TryGetProperty("output_tokens", out var o)) usage.OutputTokens = o.GetInt32();
+                if (u.TryGetProperty("cache_creation_input_tokens", out var cc)) usage.CacheCreationTokens = cc.GetInt32();
+                if (u.TryGetProperty("cache_read_input_tokens", out var cr)) usage.CacheReadTokens = cr.GetInt32();
+            }
+            return usage;
         }
     }
 }

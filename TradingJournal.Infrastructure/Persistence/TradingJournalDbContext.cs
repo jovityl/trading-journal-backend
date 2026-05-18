@@ -12,6 +12,7 @@ namespace TradingJournal.Infrastructure.Persistence
         public DbSet<User> Users => Set<User>();
         public DbSet<Trade> Trades => Set<Trade>();
         public DbSet<Prompt> Prompts => Set<Prompt>();
+        public DbSet<TokenUsage> TokenUsages => Set<TokenUsage>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -51,6 +52,19 @@ namespace TradingJournal.Infrastructure.Persistence
                 entity.Property(p => p.Key).IsRequired();
                 entity.Property(p => p.Content).IsRequired();
                 entity.HasIndex(p => p.Key).IsUnique();
+            });
+
+            // TokenUsage
+            modelBuilder.Entity<TokenUsage>(entity =>
+            {
+                entity.HasKey(t => t.Id);
+                entity.Property(t => t.Provider).IsRequired();
+                entity.Property(t => t.Model).IsRequired();
+                entity.Property(t => t.Endpoint).IsRequired();
+                entity.Property(t => t.Cost).HasColumnType("decimal(18,6)");
+                entity.HasOne(t => t.User).WithMany().HasForeignKey(t => t.UserId);
+                entity.HasIndex(t => t.UserId);
+                entity.HasIndex(t => t.CreatedAt);
             });
         }
     }

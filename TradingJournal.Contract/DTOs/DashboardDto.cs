@@ -12,6 +12,7 @@ namespace TradingJournal.Contract.DTOs
         public int DailyLossLimit { get; set; }
         public int DailyProfitTarget { get; set; }
         public List<PnlChartDto> PnlChart { get; set; } = new();
+        public List<PnlChartDto> EquityCurve { get; set; } = new();
         public List<ScoreChartDto> ScoreChart { get; set; } = new();
         public List<TradeDto> RecentTrades { get; set; } = new();
     }
