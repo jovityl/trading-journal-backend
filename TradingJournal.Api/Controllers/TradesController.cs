@@ -66,7 +66,9 @@ namespace TradingJournal.Api.Controllers
                 request.HasAppropriateDte,
                 request.IbkrScreenshot,
                 request.ChartScreenshot,
-                auth0Id);
+                auth0Id,
+                request.UnderlyingEntryPrice,
+                request.UnderlyingExitPrice);
 
             return await _sender.Send(command);
         }
@@ -75,6 +77,16 @@ namespace TradingJournal.Api.Controllers
         {
             var auth0Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
             var command = new SeedTradesCommand(auth0Id);
+            return await _sender.Send(command);
+        }
+
+        public record ChatRequestBody(List<ChatMessageDto> Messages);
+
+        [HttpPost("{id:guid}/chat")]
+        public async Task<BaseResponse<string>> ChatWithTrade([FromRoute] Guid id, [FromBody] ChatRequestBody body)
+        {
+            var auth0Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            var command = new ChatTradeCommand(id, body.Messages, auth0Id);
             return await _sender.Send(command);
         }
 

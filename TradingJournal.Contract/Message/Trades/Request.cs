@@ -19,6 +19,8 @@ namespace TradingJournal.Contract.Message.Trades
             bool HasPositionSizing,
             bool HasAppropriateDte,
             IFormFile? IbkrScreenshot,
-            IFormFile? ChartScreenshot);
+            IFormFile? ChartScreenshot,
+            decimal? UnderlyingEntryPrice = null,
+            decimal? UnderlyingExitPrice = null);
     }
 }

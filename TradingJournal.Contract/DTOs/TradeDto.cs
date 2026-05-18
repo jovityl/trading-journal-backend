@@ -8,6 +8,8 @@ namespace TradingJournal.Contract.DTOs
         public string Strategy { get; set; } = string.Empty;
         public decimal EntryPrice { get; set; }
         public decimal ExitPrice { get; set; }
+        public decimal? UnderlyingEntryPrice { get; set; }
+        public decimal? UnderlyingExitPrice { get; set; }
         public int Quantity { get; set; }
         public int Dte { get; set; }
         public DateTime TradeDate { get; set; }

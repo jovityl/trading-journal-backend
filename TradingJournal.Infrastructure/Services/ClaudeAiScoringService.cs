@@ -27,6 +27,8 @@ namespace TradingJournal.Infrastructure.Services
             decimal exitPrice,
             string optionType,
             int dte,
+            decimal? underlyingEntryPrice = null,
+            decimal? underlyingExitPrice = null,
             CancellationToken cancellationToken = default)
         {
             // Convert image stream to base64
@@ -34,7 +36,7 @@ namespace TradingJournal.Infrastructure.Services
             await chartImageStream.CopyToAsync(ms, cancellationToken);
             var base64Image = Convert.ToBase64String(ms.ToArray());
 
-            var prompt = BuildPrompt(strategy, entryPrice, exitPrice, optionType, dte);
+            var prompt = BuildPrompt(strategy, entryPrice, exitPrice, optionType, dte, underlyingEntryPrice, underlyingExitPrice);
 
             var requestBody = new
             {
@@ -83,27 +85,46 @@ namespace TradingJournal.Infrastructure.Services
             return ParseResponse(responseString);
         }
 
-        private static string BuildPrompt(string strategy, decimal entryPrice, decimal exitPrice, string optionType, int dte) => $@"
+        private static string BuildPrompt(string strategy, decimal entryPrice, decimal exitPrice, string optionType, int dte, decimal? underlyingEntry, decimal? underlyingExit)
+        {
+            var underlyingInfo = underlyingEntry.HasValue && underlyingExit.HasValue
+                ? $"- Underlying entry price: ${underlyingEntry}\n- Underlying exit price: ${underlyingExit}\nUse these to locate the entry and exit points on the chart and assess timing precisely."
+                : "- Underlying entry/exit price: not provided (use chart context to estimate where the trade happened)";
+
+            return $@"
 You are an experienced options trading coach analyzing a chart screenshot.
 
 Trade details:
 - Strategy claimed: {strategy}
 - Option type: {optionType}
-- Entry price: ${entryPrice}
-- Exit price: ${exitPrice}
+- Option entry premium: ${entryPrice}
+- Option exit premium: ${exitPrice}
 - DTE (days to expiration): {dte}
+{underlyingInfo}
 
-Evaluate the trade based on what you see in the chart:
-1. Was the claimed strategy actually present at entry? (Real breakout + retest or proper consolidation zone?)
-2. Was the entry timing reasonable based on the chart structure?
-3. Was the exit well-timed, or did they leave money on the table / exit too late?
-4. Were there obvious red flags (e.g. entered against the trend, ignored support/resistance)?
+Score the trade 0-80 based on:
+- Was the claimed strategy actually present at entry?
+- Quality of entry timing
+- Quality of exit timing
+- Red flags (entered against trend, ignored support/resistance, etc.)
 
-Respond ONLY in this exact JSON format (no extra text, no markdown):
+Note: this is an OPTIONS trade. Options traders typically manage discretionarily (no hard price stops) due to theta decay and wide spreads. Don't penalize the absence of a fixed stop loss — assess thesis invalidation instead.
+
+The feedback field MUST be formatted EXACTLY like this (keep the literal '### Takeaways' header):
+
+<2-3 sentences describing what happened in the trade — reference specific things visible in the chart>
+
+### Takeaways
+- <specific actionable takeaway 1>
+- <specific actionable takeaway 2>
+- <specific actionable takeaway 3, optional>
+
+Respond ONLY in this exact JSON format (no extra text, no markdown around the JSON):
 {{
   ""score"": <number from 0 to 80>,
-  ""feedback"": ""<2-3 sentence explanation of the score, mentioning specific things you see in the chart>""
+  ""feedback"": ""<formatted text as described above>""
 }}";
+        }
 
         private static AiScoreResult ParseResponse(string responseJson)
         {

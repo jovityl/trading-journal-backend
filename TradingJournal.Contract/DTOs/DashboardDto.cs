@@ -2,6 +2,7 @@ namespace TradingJournal.Contract.DTOs
 {
     public class DashboardDto
     {
+        public decimal TotalPnl { get; set; }
         public decimal TodayPnl { get; set; }
         public decimal MonthlyPnl { get; set; }
         public double WinRate { get; set; }

@@ -86,6 +86,8 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
                     request.ExitPrice,
                     request.OptionType,
                     request.Dte,
+                    request.UnderlyingEntryPrice,
+                    request.UnderlyingExitPrice,
                     cancellationToken);
 
                 aiScore = aiResult.Score;
@@ -103,6 +105,8 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
                 Strategy = request.Strategy,
                 EntryPrice = request.EntryPrice,
                 ExitPrice = request.ExitPrice,
+                UnderlyingEntryPrice = request.UnderlyingEntryPrice,
+                UnderlyingExitPrice = request.UnderlyingExitPrice,
                 Quantity = request.Quantity,
                 Dte = request.Dte,
                 TradeDate = request.TradeDate,

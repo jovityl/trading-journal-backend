@@ -10,8 +10,10 @@ namespace TradingJournal.Domain.Entities
         public string OptionType { get; set; } = string.Empty; // Call or Put
         public string Strategy { get; set; } = string.Empty;   // Breakout+Retest or Consolidation Zone
 
-        public decimal EntryPrice { get; set; }
-        public decimal ExitPrice { get; set; }
+        public decimal EntryPrice { get; set; }              // option premium
+        public decimal ExitPrice { get; set; }               // option premium
+        public decimal? UnderlyingEntryPrice { get; set; }   // stock price at entry
+        public decimal? UnderlyingExitPrice { get; set; }    // stock price at exit
         public int Quantity { get; set; }
         public int Dte { get; set; }
         public DateTime TradeDate { get; set; }

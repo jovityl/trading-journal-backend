@@ -37,6 +37,9 @@ namespace TradingJournal.Application.Handlers.Dashboard.Queries
             var todayTrades = allTrades.Where(t => t.TradeDate.Date == today).ToList();
             var monthTrades = allTrades.Where(t => t.TradeDate >= startOfMonth).ToList();
 
+            // Total P&L (all-time)
+            var totalPnl = allTrades.Sum(t => t.Pnl);
+
             // Today's P&L
             var todayPnl = todayTrades.Sum(t => t.Pnl);
 
@@ -86,6 +89,7 @@ namespace TradingJournal.Application.Handlers.Dashboard.Queries
 
             return BaseResponse<DashboardDto>.Ok(new DashboardDto
             {
+                TotalPnl = totalPnl,
                 TodayPnl = todayPnl,
                 MonthlyPnl = monthlyPnl,
                 WinRate = Math.Round(winRate, 2),

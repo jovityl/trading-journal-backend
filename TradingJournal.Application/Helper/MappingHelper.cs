@@ -15,6 +15,8 @@ namespace TradingJournal.Application.Helper
                 Strategy = entity.Strategy,
                 EntryPrice = entity.EntryPrice,
                 ExitPrice = entity.ExitPrice,
+                UnderlyingEntryPrice = entity.UnderlyingEntryPrice,
+                UnderlyingExitPrice = entity.UnderlyingExitPrice,
                 Quantity = entity.Quantity,
                 Dte = entity.Dte,
                 TradeDate = entity.TradeDate,
