@@ -12,15 +12,18 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
         private readonly ITradeRepository _tradeRepository;
         private readonly IUserRepository _userRepository;
         private readonly IChatService _chatService;
+        private readonly IPromptService _promptService;
 
         public ChatTradeCommandHandler(
             ITradeRepository tradeRepository,
             IUserRepository userRepository,
-            IChatService chatService)
+            IChatService chatService,
+            IPromptService promptService)
         {
             _tradeRepository = tradeRepository;
             _userRepository = userRepository;
             _chatService = chatService;
+            _promptService = promptService;
         }
 
         public async Task<BaseResponse<string>> Handle(ChatTradeCommand request, CancellationToken cancellationToken)
@@ -34,7 +37,8 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
             if (trade is null)
                 return BaseResponse<string>.NotFound("Trade not found.");
 
-            var systemPrompt = BuildSystemPrompt(trade);
+            var template = await _promptService.GetAsync(PromptKeys.ChatSystem, cancellationToken);
+            var systemPrompt = FillTradePlaceholders(template, trade);
 
             // Load chart image if present
             Stream? imageStream = null;
@@ -78,29 +82,22 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
             }
         }
 
-        private static string BuildSystemPrompt(Trade trade) => $@"
-You are an experienced options trading coach helping the user reflect on this specific trade.
-
-Trade details:
-- Ticker: {trade.Ticker}
-- Option type: {trade.OptionType}
-- Strategy: {trade.Strategy}
-- Option entry premium: ${trade.EntryPrice}
-- Option exit premium: ${trade.ExitPrice}
-- Underlying entry: {(trade.UnderlyingEntryPrice.HasValue ? $"${trade.UnderlyingEntryPrice}" : "not provided")}
-- Underlying exit: {(trade.UnderlyingExitPrice.HasValue ? $"${trade.UnderlyingExitPrice}" : "not provided")}
-- Quantity: {trade.Quantity}
-- DTE: {trade.Dte}
-- P&L: ${trade.Pnl}
-- Discipline score: {trade.DisciplineScore}/100
-- User's notes: {trade.Notes ?? "(none)"}
-- Previous AI analysis: {trade.AiFeedback ?? "(none)"}
-
-The chart screenshot for this trade is attached (if available).
-
-Answer the user's questions clearly and conversationally. Reference specific things from the chart and trade data.
-Be concise — give actionable, practical advice without long-winded explanations.
-This is an OPTIONS trade, so manage discretionarily (no hard stops needed).
-";
+        private static string FillTradePlaceholders(string template, Trade trade)
+        {
+            return template
+                .Replace("{ticker}", trade.Ticker)
+                .Replace("{optionType}", trade.OptionType)
+                .Replace("{strategy}", trade.Strategy)
+                .Replace("{entryPrice}", trade.EntryPrice.ToString())
+                .Replace("{exitPrice}", trade.ExitPrice.ToString())
+                .Replace("{underlyingEntry}", trade.UnderlyingEntryPrice.HasValue ? $"${trade.UnderlyingEntryPrice}" : "not provided")
+                .Replace("{underlyingExit}", trade.UnderlyingExitPrice.HasValue ? $"${trade.UnderlyingExitPrice}" : "not provided")
+                .Replace("{quantity}", trade.Quantity.ToString())
+                .Replace("{dte}", trade.Dte.ToString())
+                .Replace("{pnl}", trade.Pnl.ToString())
+                .Replace("{disciplineScore}", trade.DisciplineScore.ToString())
+                .Replace("{notes}", trade.Notes ?? "(none)")
+                .Replace("{aiFeedback}", trade.AiFeedback ?? "(none)");
+        }
     }
 }

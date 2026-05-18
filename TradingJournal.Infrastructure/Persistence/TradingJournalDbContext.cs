@@ -11,6 +11,7 @@ namespace TradingJournal.Infrastructure.Persistence
 
         public DbSet<User> Users => Set<User>();
         public DbSet<Trade> Trades => Set<Trade>();
+        public DbSet<Prompt> Prompts => Set<Prompt>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -41,6 +42,15 @@ namespace TradingJournal.Infrastructure.Persistence
                 entity.HasOne(t => t.User)
                     .WithMany(u => u.Trades)
                     .HasForeignKey(t => t.UserId);
+            });
+
+            // Prompt
+            modelBuilder.Entity<Prompt>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+                entity.Property(p => p.Key).IsRequired();
+                entity.Property(p => p.Content).IsRequired();
+                entity.HasIndex(p => p.Key).IsUnique();
             });
         }
     }

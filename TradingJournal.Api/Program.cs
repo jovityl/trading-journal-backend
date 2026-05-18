@@ -30,10 +30,12 @@ builder.Services.AddMediatR(cfg =>
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITradeRepository, TradeRepository>();
+builder.Services.AddScoped<IPromptRepository, PromptRepository>();
 
 // Services
 builder.Services.AddScoped<IStorageService, LocalStorageService>();
 builder.Services.AddSingleton<IAdminSettings, AdminSettings>();
+builder.Services.AddSingleton<IPromptService, PromptService>();
 builder.Services.AddHttpClient<IAiScoringService, ClaudeAiScoringService>();
 builder.Services.AddHttpClient<IChatService, ClaudeChatService>();
 
@@ -67,6 +69,13 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Seed prompts on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<TradingJournalDbContext>();
+    await TradingJournal.Infrastructure.Persistence.PromptSeeder.SeedAsync(db);
+}
 
 if (app.Environment.IsDevelopment())
 {
