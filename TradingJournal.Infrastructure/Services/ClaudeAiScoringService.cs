@@ -28,8 +28,8 @@ namespace TradingJournal.Infrastructure.Services
             decimal exitPrice,
             string optionType,
             int dte,
-            decimal? underlyingEntryPrice = null,
-            decimal? underlyingExitPrice = null,
+            decimal underlyingEntryPrice,
+            decimal underlyingExitPrice,
             CancellationToken cancellationToken = default)
         {
             using var ms = new MemoryStream();
@@ -86,11 +86,9 @@ namespace TradingJournal.Infrastructure.Services
             return ParseResponse(responseString);
         }
 
-        private static string FillPlaceholders(string template, string strategy, decimal entryPrice, decimal exitPrice, string optionType, int dte, decimal? underlyingEntry, decimal? underlyingExit)
+        private static string FillPlaceholders(string template, string strategy, decimal entryPrice, decimal exitPrice, string optionType, int dte, decimal underlyingEntry, decimal underlyingExit)
         {
-            var underlyingInfo = underlyingEntry.HasValue && underlyingExit.HasValue
-                ? $"- Underlying entry price: ${underlyingEntry}\n- Underlying exit price: ${underlyingExit}\nUse these to locate the entry and exit points on the chart and assess timing precisely."
-                : "- Underlying entry/exit price: not provided (use chart context to estimate where the trade happened)";
+            var underlyingInfo = $"- Underlying entry price: ${underlyingEntry}\n- Underlying exit price: ${underlyingExit}\nUse these to locate the entry and exit points on the chart and assess timing precisely.";
 
             return template
                 .Replace("{strategy}", strategy)

@@ -55,7 +55,7 @@ Trade details:
 - DTE (days to expiration): {dte}
 {underlyingInfo}
 
-Score the trade 0-80 based on:
+Score the trade 0-100 based on:
 - Was the claimed strategy actually present at entry?
 - Quality of entry timing
 - Quality of exit timing
@@ -74,7 +74,7 @@ The feedback field MUST be formatted EXACTLY like this (keep the literal '### Ta
 
 Respond ONLY in this exact JSON format (no extra text, no markdown around the JSON):
 {{
-  ""score"": <number from 0 to 80>,
+  ""score"": <number from 0 to 100>,
   ""feedback"": ""<formatted text as described above>""
 }}";
 
@@ -113,7 +113,9 @@ Trade details:
 - Quantity: {quantity}
 - DTE: {dte}
 - P&L: ${pnl}
+- AI chart score: {aiScore}/100
 - Discipline score: {disciplineScore}/100
+- Violation tags: {violationTags}
 - User's notes: {notes}
 - Previous AI analysis: {aiFeedback}
 

@@ -14,6 +14,7 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
         private static readonly string[] Tickers = { "AAPL", "TSLA", "MSFT", "NVDA", "META", "AMZN", "GOOGL", "SPY", "QQQ" };
         private static readonly string[] OptionTypes = { "Call", "Put" };
         private static readonly string[] Strategies = { "Breakout + Retest", "Consolidation Zone" };
+        private static readonly string[] AllViolationTags = { "Revenge Trade", "FOMO Entry", "Oversized Position", "Early Exit", "Late Exit", "Chased Entry", "No Clear Setup", "Broke Profit Target", "Overtraded" };
 
         public SeedTradesCommandHandler(ITradeRepository tradeRepository, IUserRepository userRepository)
         {
@@ -42,12 +43,10 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
                 var quantity = random.Next(1, 5);
                 var pnl = (exitPrice - entryPrice) * quantity * 100;
 
-                var entryQ = random.Next(2, 6);   // 2-5
-                var exitQ = random.Next(2, 6);
-                var riskMgmt = random.Next(2, 6);
-                var planAdh = random.Next(2, 6);
-                var ticked = entryQ + exitQ + riskMgmt + planAdh;  // 8-20
-                var aiScore = random.Next(40, 75);
+                var tagCount = random.Next(0, 4); // 0-3 tags
+                var violationTags = AllViolationTags.OrderBy(_ => random.Next()).Take(tagCount).ToList();
+                var disciplineScore = tagCount switch { 0 => 100, 1 => 70, 2 => 40, _ => 10 };
+                var aiScore = random.Next(40, 100);
 
                 trades.Add(new Trade
                 {
@@ -63,14 +62,10 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
                     TradeDate = DateTime.UtcNow.AddDays(-random.Next(0, 30)),
                     Pnl = pnl,
                     Notes = "Seeded test trade",
-                    EntryQuality = entryQ,
-                    ExitQuality = exitQ,
-                    RiskManagement = riskMgmt,
-                    PlanAdherence = planAdh,
-                    TickedScore = ticked,
+                    ViolationTags = violationTags,
                     AiScore = aiScore,
                     AiFeedback = "Seeded — no real AI analysis",
-                    DisciplineScore = ticked + aiScore,
+                    DisciplineScore = disciplineScore,
                     CreatedAt = DateTime.UtcNow
                 });
             }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TradingJournal.Infrastructure.Persistence;
@@ -12,9 +13,11 @@ using TradingJournal.Infrastructure.Persistence;
 namespace TradingJournal.Infrastructure.Migrations
 {
     [DbContext(typeof(TradingJournalDbContext))]
-    partial class TradingJournalDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260519072930_AddViolationTagsRemoveManualRatings")]
+    partial class AddViolationTagsRemoveManualRatings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

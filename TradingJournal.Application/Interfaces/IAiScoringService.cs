@@ -27,8 +27,8 @@ namespace TradingJournal.Application.Interfaces
             decimal exitPrice,
             string optionType,
             int dte,
-            decimal? underlyingEntryPrice = null,
-            decimal? underlyingExitPrice = null,
+            decimal underlyingEntryPrice,
+            decimal underlyingExitPrice,
             CancellationToken cancellationToken = default);
     }
 }

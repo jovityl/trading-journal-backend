@@ -156,12 +156,14 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
                 .Replace("{strategy}", trade.Strategy)
                 .Replace("{entryPrice}", trade.EntryPrice.ToString())
                 .Replace("{exitPrice}", trade.ExitPrice.ToString())
-                .Replace("{underlyingEntry}", trade.UnderlyingEntryPrice.HasValue ? $"${trade.UnderlyingEntryPrice}" : "not provided")
-                .Replace("{underlyingExit}", trade.UnderlyingExitPrice.HasValue ? $"${trade.UnderlyingExitPrice}" : "not provided")
+                .Replace("{underlyingEntry}", $"${trade.UnderlyingEntryPrice}")
+                .Replace("{underlyingExit}", $"${trade.UnderlyingExitPrice}")
                 .Replace("{quantity}", trade.Quantity.ToString())
                 .Replace("{dte}", trade.Dte.ToString())
                 .Replace("{pnl}", trade.Pnl.ToString())
+                .Replace("{aiScore}", trade.AiScore.ToString())
                 .Replace("{disciplineScore}", trade.DisciplineScore.ToString())
+                .Replace("{violationTags}", trade.ViolationTags.Count > 0 ? string.Join(", ", trade.ViolationTags) : "none")
                 .Replace("{notes}", trade.Notes ?? "(none)")
                 .Replace("{aiFeedback}", trade.AiFeedback ?? "(none)");
         }

@@ -12,8 +12,8 @@ namespace TradingJournal.Domain.Entities
 
         public decimal EntryPrice { get; set; }              // option premium
         public decimal ExitPrice { get; set; }               // option premium
-        public decimal? UnderlyingEntryPrice { get; set; }   // stock price at entry
-        public decimal? UnderlyingExitPrice { get; set; }    // stock price at exit
+        public decimal UnderlyingEntryPrice { get; set; }
+        public decimal UnderlyingExitPrice { get; set; }
         public int Quantity { get; set; }
         public int Dte { get; set; }
         public DateTime TradeDate { get; set; }
@@ -24,19 +24,13 @@ namespace TradingJournal.Domain.Entities
         public string? IbkrScreenshotUrl { get; set; }
         public string? ChartScreenshotUrl { get; set; }
 
-        // AI scoring
-        public int AiScore { get; set; }        // 0-80
+        // AI scoring (0-100)
+        public int AiScore { get; set; }
         public string? AiFeedback { get; set; }
 
-        // Manual discipline ratings (1-5 each, sum = TickedScore 4-20)
-        public int EntryQuality { get; set; }       // 1-5
-        public int ExitQuality { get; set; }        // 1-5
-        public int RiskManagement { get; set; }     // 1-5
-        public int PlanAdherence { get; set; }      // 1-5
-
-        // Scores
-        public int TickedScore { get; set; }      // 0-20
-        public int DisciplineScore { get; set; }  // 0-100 (AiScore + TickedScore)
+        // Discipline tracking
+        public List<string> ViolationTags { get; set; } = [];
+        public int DisciplineScore { get; set; }  // 100 / 70 / 40 / 10 based on tag count
 
         public DateTime CreatedAt { get; set; }
     }

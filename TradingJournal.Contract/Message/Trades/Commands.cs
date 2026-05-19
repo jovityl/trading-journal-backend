@@ -17,15 +17,12 @@ namespace TradingJournal.Contract.Message.Trades
             int Dte,
             DateTime TradeDate,
             string? Notes,
-            int EntryQuality,
-            int ExitQuality,
-            int RiskManagement,
-            int PlanAdherence,
+            List<string>? ViolationTags,
             IFormFile? IbkrScreenshot,
             IFormFile? ChartScreenshot,
             string Auth0Id,
-            decimal? UnderlyingEntryPrice = null,
-            decimal? UnderlyingExitPrice = null) : ICommand<BaseResponse<TradeDto>>;
+            decimal UnderlyingEntryPrice,
+            decimal UnderlyingExitPrice) : ICommand<BaseResponse<TradeDto>>;
 
         public record DeleteTradeCommand(Guid Id, string Auth0Id) : ICommand<BaseResponse<bool>>;
 

@@ -41,6 +41,8 @@ namespace TradingJournal.Infrastructure.Persistence
                 entity.Property(t => t.ExitPrice).HasColumnType("decimal(18,2)");
                 entity.Property(t => t.Pnl).HasColumnType("decimal(18,2)");
 
+                entity.Property(t => t.ViolationTags).HasColumnType("text[]");
+
                 entity.HasOne(t => t.User)
                     .WithMany(u => u.Trades)
                     .HasForeignKey(t => t.UserId);

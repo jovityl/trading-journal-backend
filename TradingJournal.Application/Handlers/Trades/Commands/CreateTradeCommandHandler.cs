@@ -41,8 +41,15 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
             // Calculate P&L
             var pnl = (request.ExitPrice - request.EntryPrice) * request.Quantity * 100;
 
-            // Ticked score = sum of 4 ratings (1-5 each) = 4-20
-            var tickedScore = request.EntryQuality + request.ExitQuality + request.RiskManagement + request.PlanAdherence;
+            // Discipline score derived from violation tag count
+            var violationTags = request.ViolationTags ?? [];
+            var disciplineScore = violationTags.Count switch
+            {
+                0 => 100,
+                1 => 70,
+                2 => 40,
+                _ => 10
+            };
 
             // Upload IBKR screenshot if provided
             string? ibkrScreenshotUrl = null;
@@ -96,8 +103,6 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
                 await _tokenUsageService.RecordAsync(user.Id, "scoring", aiResult.Usage, cancellationToken);
             }
 
-            var disciplineScore = tickedScore + aiScore; // out of 100
-
             var trade = new Trade
             {
                 Id = Guid.NewGuid(),
@@ -116,11 +121,7 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
                 Notes = request.Notes,
                 IbkrScreenshotUrl = ibkrScreenshotUrl,
                 ChartScreenshotUrl = chartScreenshotUrl,
-                EntryQuality = request.EntryQuality,
-                ExitQuality = request.ExitQuality,
-                RiskManagement = request.RiskManagement,
-                PlanAdherence = request.PlanAdherence,
-                TickedScore = tickedScore,
+                ViolationTags = violationTags,
                 AiScore = aiScore,
                 AiFeedback = aiFeedback,
                 DisciplineScore = disciplineScore,

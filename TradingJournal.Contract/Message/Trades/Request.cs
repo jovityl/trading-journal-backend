@@ -14,13 +14,10 @@ namespace TradingJournal.Contract.Message.Trades
             int Dte,
             DateTime TradeDate,
             string? Notes,
-            int EntryQuality,
-            int ExitQuality,
-            int RiskManagement,
-            int PlanAdherence,
+            List<string>? ViolationTags,
             IFormFile? IbkrScreenshot,
             IFormFile? ChartScreenshot,
-            decimal? UnderlyingEntryPrice = null,
-            decimal? UnderlyingExitPrice = null);
+            decimal UnderlyingEntryPrice,
+            decimal UnderlyingExitPrice);
     }
 }

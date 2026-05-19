@@ -26,11 +26,7 @@ namespace TradingJournal.Application.Helper
                 ChartScreenshotUrl = entity.ChartScreenshotUrl,
                 AiScore = entity.AiScore,
                 AiFeedback = entity.AiFeedback,
-                EntryQuality = entity.EntryQuality,
-                ExitQuality = entity.ExitQuality,
-                RiskManagement = entity.RiskManagement,
-                PlanAdherence = entity.PlanAdherence,
-                TickedScore = entity.TickedScore,
+                ViolationTags = entity.ViolationTags,
                 DisciplineScore = entity.DisciplineScore,
                 CreatedAt = entity.CreatedAt
             };
