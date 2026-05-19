@@ -32,6 +32,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITradeRepository, TradeRepository>();
 builder.Services.AddScoped<IPromptRepository, PromptRepository>();
 builder.Services.AddScoped<ITokenUsageRepository, TokenUsageRepository>();
+builder.Services.AddScoped<ITradeMessageRepository, TradeMessageRepository>();
 
 // Services
 builder.Services.AddScoped<IStorageService, LocalStorageService>();
@@ -45,7 +46,7 @@ builder.Services.AddHttpClient<OpenRouterChatService>();
 builder.Services.AddScoped<IChatServiceRouter, ChatServiceRouter>();
 // IChatService default → use router's choice (default Claude)
 builder.Services.AddScoped<IChatService>(sp => sp.GetRequiredService<IChatServiceRouter>().Resolve(null));
-builder.Services.AddHttpClient<IChatModerationService, OpenRouterModerationService>();
+builder.Services.AddHttpClient<IChatModerationService, ChatModerationService>();
 
 // Auth0
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

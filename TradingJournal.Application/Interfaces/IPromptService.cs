@@ -4,6 +4,7 @@ namespace TradingJournal.Application.Interfaces
     {
         public const string AiScoring = "ai_scoring";
         public const string ChatSystem = "chat_system";
+        public const string ChatModeration = "chat_moderation";
     }
 
     public interface IPromptService

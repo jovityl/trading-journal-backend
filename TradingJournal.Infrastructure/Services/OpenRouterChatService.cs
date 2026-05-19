@@ -73,7 +73,7 @@ namespace TradingJournal.Infrastructure.Services
             {
                 model = modelName,
                 messages = formattedMessages,
-                max_tokens = 1024
+                max_tokens = 512
             };
 
             var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl);

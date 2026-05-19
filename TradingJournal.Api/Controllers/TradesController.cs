@@ -82,6 +82,20 @@ namespace TradingJournal.Api.Controllers
 
         public record ChatRequestBody(List<ChatMessageDto> Messages, string? Model);
 
+        [HttpGet("{id:guid}/messages")]
+        public async Task<BaseResponse<List<TradeMessageDto>>> GetTradeMessages([FromRoute] Guid id)
+        {
+            var auth0Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            return await _sender.Send(new GetTradeMessagesQuery(id, auth0Id));
+        }
+
+        [HttpDelete("{id:guid}/messages")]
+        public async Task<BaseResponse<int>> ClearTradeMessages([FromRoute] Guid id)
+        {
+            var auth0Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            return await _sender.Send(new ClearTradeMessagesCommand(id, auth0Id));
+        }
+
         [HttpPost("{id:guid}/chat")]
         public async Task<BaseResponse<string>> ChatWithTrade([FromRoute] Guid id, [FromBody] ChatRequestBody body)
         {

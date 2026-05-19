@@ -6,38 +6,30 @@ using TradingJournal.Application.Interfaces;
 namespace TradingJournal.Infrastructure.Services
 {
     /// <summary>
-    /// Classifies user messages using a FREE OpenRouter model.
-    /// Defaults to DeepSeek V3 free — solid for simple classification tasks.
+    /// Classifies user messages as on-topic / off-topic before the expensive chat call.
+    /// Uses Claude Haiku via OpenRouter — small, fast, cheap, reliable for binary classification.
+    /// Prompt is editable from the admin panel (key: chat_moderation).
     /// Falls back to "on-topic" if the call fails so users aren't blocked.
     /// </summary>
-    public class OpenRouterModerationService : IChatModerationService
+    public class ChatModerationService : IChatModerationService
     {
         private readonly HttpClient _httpClient;
+        private readonly IPromptService _promptService;
         private readonly string _apiKey;
         private const string ApiUrl = "https://openrouter.ai/api/v1/chat/completions";
-        private const string Model = "meta-llama/llama-3.3-70b-instruct:free";
+        private const string Model = "anthropic/claude-haiku-4.5";
 
-        public OpenRouterModerationService(HttpClient httpClient, IConfiguration config)
+        public ChatModerationService(HttpClient httpClient, IConfiguration config, IPromptService promptService)
         {
             _httpClient = httpClient;
+            _promptService = promptService;
             _apiKey = config["OpenRouter:ApiKey"] ?? throw new InvalidOperationException("OpenRouter:ApiKey is not configured.");
         }
 
         public async Task<ModerationResult> IsOnTopicAsync(string userMessage, CancellationToken cancellationToken = default)
         {
-            var prompt = $@"You are a strict classifier for a trading journal chatbot.
-
-Decide if the user's message relates to:
-- Trading (any style: options, stocks, futures, crypto)
-- Trading psychology, discipline, strategy
-- The user's specific trade or their journal
-- Markets, charts, indicators
-
-Respond with EXACTLY one word: ON or OFF
-ON = on-topic
-OFF = anything else (jokes, weather, life advice, coding, etc.)
-
-User message: ""{userMessage}""";
+            var template = await _promptService.GetAsync(PromptKeys.ChatModeration, cancellationToken);
+            var prompt = template.Replace("{userMessage}", userMessage);
 
             var requestBody = new
             {
@@ -62,7 +54,7 @@ User message: ""{userMessage}""";
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    // fail open — don't block user if free tier is rate-limited
+                    // fail open — don't block user if rate-limited
                     return new ModerationResult { IsOnTopic = true };
                 }
 

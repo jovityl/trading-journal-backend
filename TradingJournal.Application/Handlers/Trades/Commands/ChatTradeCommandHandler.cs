@@ -15,6 +15,7 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
         private readonly IChatModerationService _moderationService;
         private readonly IPromptService _promptService;
         private readonly ITokenUsageService _tokenUsageService;
+        private readonly ITradeMessageRepository _messageRepository;
 
         public ChatTradeCommandHandler(
             ITradeRepository tradeRepository,
@@ -22,7 +23,8 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
             IChatServiceRouter chatRouter,
             IChatModerationService moderationService,
             IPromptService promptService,
-            ITokenUsageService tokenUsageService)
+            ITokenUsageService tokenUsageService,
+            ITradeMessageRepository messageRepository)
         {
             _tradeRepository = tradeRepository;
             _userRepository = userRepository;
@@ -30,6 +32,7 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
             _moderationService = moderationService;
             _promptService = promptService;
             _tokenUsageService = tokenUsageService;
+            _messageRepository = messageRepository;
         }
 
         public async Task<BaseResponse<string>> Handle(ChatTradeCommand request, CancellationToken cancellationToken)
@@ -43,8 +46,21 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
             if (trade is null)
                 return BaseResponse<string>.NotFound("Trade not found.");
 
-            // Cheap pre-check: classify the latest user message
+            // Persist the latest user message
             var latestUserMessage = request.Messages.LastOrDefault(m => m.Role == "user")?.Content ?? "";
+            if (!string.IsNullOrWhiteSpace(latestUserMessage))
+            {
+                await _messageRepository.AddAsync(new TradeMessage
+                {
+                    Id = Guid.NewGuid(),
+                    TradeId = trade.Id,
+                    Role = "user",
+                    Content = latestUserMessage,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            // Cheap pre-check: classify the latest user message
             if (!string.IsNullOrWhiteSpace(latestUserMessage))
             {
                 var moderation = await _moderationService.IsOnTopicAsync(latestUserMessage, cancellationToken);
@@ -52,9 +68,20 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
 
                 if (!moderation.IsOnTopic)
                 {
-                    return BaseResponse<string>.Ok(
-                        "I can only help with questions about trading or this specific trade. " +
-                        "Try asking about your entry timing, strategy, discipline, or what to do differently next time.");
+                    var cannedReply = "I can only help with questions about trading or this specific trade. " +
+                        "Try asking about your entry timing, strategy, discipline, or what to do differently next time.";
+
+                    await _messageRepository.AddAsync(new TradeMessage
+                    {
+                        Id = Guid.NewGuid(),
+                        TradeId = trade.Id,
+                        Role = "assistant",
+                        Content = cannedReply,
+                        Model = "moderation",
+                        CreatedAt = DateTime.UtcNow
+                    });
+
+                    return BaseResponse<string>.Ok(cannedReply);
                 }
             }
 
@@ -84,7 +111,10 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
 
             try
             {
+                // Cost control: only send last 6 messages (3 exchanges) to the AI.
+                // All messages still saved in DB and shown in UI — just not sent to the model.
                 var messages = request.Messages
+                    .TakeLast(6)
                     .Select(m => new ChatMessage { Role = m.Role, Content = m.Content })
                     .ToList();
 
@@ -98,6 +128,17 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
                     cancellationToken);
 
                 await _tokenUsageService.RecordAsync(user.Id, "chat", chatResult.Usage, cancellationToken);
+
+                // Persist assistant reply
+                await _messageRepository.AddAsync(new TradeMessage
+                {
+                    Id = Guid.NewGuid(),
+                    TradeId = trade.Id,
+                    Role = "assistant",
+                    Content = chatResult.Reply,
+                    Model = request.Model,
+                    CreatedAt = DateTime.UtcNow
+                });
 
                 return BaseResponse<string>.Ok(chatResult.Reply);
             }

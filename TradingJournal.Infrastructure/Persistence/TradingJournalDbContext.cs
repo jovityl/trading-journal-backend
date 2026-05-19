@@ -13,6 +13,7 @@ namespace TradingJournal.Infrastructure.Persistence
         public DbSet<Trade> Trades => Set<Trade>();
         public DbSet<Prompt> Prompts => Set<Prompt>();
         public DbSet<TokenUsage> TokenUsages => Set<TokenUsage>();
+        public DbSet<TradeMessage> TradeMessages => Set<TradeMessage>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -65,6 +66,17 @@ namespace TradingJournal.Infrastructure.Persistence
                 entity.HasOne(t => t.User).WithMany().HasForeignKey(t => t.UserId);
                 entity.HasIndex(t => t.UserId);
                 entity.HasIndex(t => t.CreatedAt);
+            });
+
+            // TradeMessage
+            modelBuilder.Entity<TradeMessage>(entity =>
+            {
+                entity.HasKey(m => m.Id);
+                entity.Property(m => m.Role).IsRequired();
+                entity.Property(m => m.Content).IsRequired();
+                entity.HasOne(m => m.Trade).WithMany().HasForeignKey(m => m.TradeId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(m => m.TradeId);
+                entity.HasIndex(m => m.CreatedAt);
             });
         }
     }

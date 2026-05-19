@@ -17,5 +17,6 @@ namespace TradingJournal.Contract.Message.Trades
             int? PageNumber = null) : IQuery<BaseResponse<IEnumerable<TradeDto>>>;
 
         public record GetTradeByIdQuery(Guid Id, string Auth0Id) : IQuery<BaseResponse<TradeDto>>;
+        public record GetTradeMessagesQuery(Guid TradeId, string Auth0Id) : IQuery<BaseResponse<List<TradeMessageDto>>>;
     }
 }

@@ -76,7 +76,7 @@ namespace TradingJournal.Infrastructure.Services
             var requestBody = new
             {
                 model = modelName,
-                max_tokens = 1024,
+                max_tokens = 512,
                 system = new object[]
                 {
                     new

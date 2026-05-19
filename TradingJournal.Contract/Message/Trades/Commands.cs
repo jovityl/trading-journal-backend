@@ -40,5 +40,7 @@ namespace TradingJournal.Contract.Message.Trades
             List<ChatMessageDto> Messages,
             string Auth0Id,
             string? Model = null) : ICommand<BaseResponse<string>>;
+
+        public record ClearTradeMessagesCommand(Guid TradeId, string Auth0Id) : ICommand<BaseResponse<int>>;
     }
 }

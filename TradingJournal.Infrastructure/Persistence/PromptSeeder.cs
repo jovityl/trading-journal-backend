@@ -26,6 +26,13 @@ namespace TradingJournal.Infrastructure.Persistence
                     Content = ChatSystemDefault,
                     UpdatedAt = DateTime.UtcNow
                 },
+                new Prompt
+                {
+                    Id = Guid.NewGuid(),
+                    Key = PromptKeys.ChatModeration,
+                    Content = ChatModerationDefault,
+                    UpdatedAt = DateTime.UtcNow
+                },
             };
 
             foreach (var seed in seeds)
@@ -70,6 +77,27 @@ Respond ONLY in this exact JSON format (no extra text, no markdown around the JS
   ""score"": <number from 0 to 80>,
   ""feedback"": ""<formatted text as described above>""
 }}";
+
+        private const string ChatModerationDefault = @"You are a strict binary classifier for a trading journal chatbot.
+
+Reply ""ON"" only if the message is a CLEAR, COHERENT question or request about:
+- Trading (options, stocks, futures, crypto)
+- Trading psychology, discipline, position sizing
+- A specific trade, chart pattern, or strategy
+- Markets, prices, indicators
+- Meta-requests like ""summarize"", ""explain again"", ""rephrase"" — assume about trading
+
+Reply ""OFF"" for:
+- Clearly unrelated topics: food, weather, sports, jokes, coding, life advice
+- Vague, ambiguous, or incoherent fragments (e.g. ""but what"", ""ok then"", ""hmm"", random characters)
+- Trading metaphors used to ask about non-trading topics
+- Test messages, gibberish, single words without context
+
+Default to OFF if the message isn't substantively about trading OR isn't clearly asking for something specific.
+
+Reply with EXACTLY one word: ON or OFF. No punctuation.
+
+User message: ""{userMessage}""";
 
         private const string ChatSystemDefault = @"
 You are an experienced options trading coach helping the user reflect on this specific trade.
