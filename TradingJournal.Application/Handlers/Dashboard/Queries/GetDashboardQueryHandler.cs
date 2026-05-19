@@ -100,6 +100,19 @@ namespace TradingJournal.Application.Handlers.Dashboard.Queries
                 .Select(t => t.ToDto())
                 .ToList();
 
+            // Violation tag stats (all-time)
+            var violationTagStats = allTrades
+                .SelectMany(t => t.ViolationTags)
+                .GroupBy(tag => tag)
+                .OrderByDescending(g => g.Count())
+                .Select(g => new ViolationTagStatDto { Tag = g.Key, Count = g.Count() })
+                .ToList();
+
+            // Clean trade rate (all-time)
+            var cleanTradeRate = totalTrades > 0
+                ? Math.Round((double)allTrades.Count(t => t.ViolationTags.Count == 0) / totalTrades * 100, 1)
+                : 0;
+
             return BaseResponse<DashboardDto>.Ok(new DashboardDto
             {
                 TotalPnl = totalPnl,
@@ -114,7 +127,9 @@ namespace TradingJournal.Application.Handlers.Dashboard.Queries
                 PnlChart = pnlChart,
                 EquityCurve = equityCurve,
                 ScoreChart = scoreChart,
-                RecentTrades = recentTrades
+                RecentTrades = recentTrades,
+                ViolationTagStats = violationTagStats,
+                CleanTradeRate = cleanTradeRate
             });
         }
     }

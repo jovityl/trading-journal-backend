@@ -15,6 +15,8 @@ namespace TradingJournal.Contract.DTOs
         public List<PnlChartDto> EquityCurve { get; set; } = new();
         public List<ScoreChartDto> ScoreChart { get; set; } = new();
         public List<TradeDto> RecentTrades { get; set; } = new();
+        public List<ViolationTagStatDto> ViolationTagStats { get; set; } = new();
+        public double CleanTradeRate { get; set; }
     }
 
     public class PnlChartDto
@@ -27,5 +29,11 @@ namespace TradingJournal.Contract.DTOs
     {
         public string Date { get; set; } = string.Empty;
         public double AverageScore { get; set; }
+    }
+
+    public class ViolationTagStatDto
+    {
+        public string Tag { get; set; } = string.Empty;
+        public int Count { get; set; }
     }
 }
