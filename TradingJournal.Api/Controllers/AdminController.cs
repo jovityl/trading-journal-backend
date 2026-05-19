@@ -32,6 +32,12 @@ namespace TradingJournal.Api.Controllers
             return await _sender.Send(new GetUsageQuery());
         }
 
+        [HttpGet("users")]
+        public async Task<BaseResponse<List<AdminUserDto>>> GetUsers()
+        {
+            return await _sender.Send(new GetAdminUsersQuery());
+        }
+
         public record UpdatePromptBody(string Content);
 
         [HttpPut("prompts/{key}")]

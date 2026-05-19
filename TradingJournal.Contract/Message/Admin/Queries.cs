@@ -8,5 +8,6 @@ namespace TradingJournal.Contract.Message.Admin
     {
         public record GetPromptsQuery() : IQuery<BaseResponse<List<PromptDto>>>;
         public record GetUsageQuery() : IQuery<BaseResponse<UsageSummaryDto>>;
+        public record GetAdminUsersQuery() : IQuery<BaseResponse<List<AdminUserDto>>>;
     }
 }
