@@ -28,11 +28,11 @@ namespace TradingJournal.Domain.Entities
         public int AiScore { get; set; }        // 0-80
         public string? AiFeedback { get; set; }
 
-        // Manual discipline ticks
-        public bool HasStopLoss { get; set; }
-        public bool HasProfitTarget { get; set; }
-        public bool HasPositionSizing { get; set; }
-        public bool HasAppropriateDte { get; set; }
+        // Manual discipline ratings (1-5 each, sum = TickedScore 4-20)
+        public int EntryQuality { get; set; }       // 1-5
+        public int ExitQuality { get; set; }        // 1-5
+        public int RiskManagement { get; set; }     // 1-5
+        public int PlanAdherence { get; set; }      // 1-5
 
         // Scores
         public int TickedScore { get; set; }      // 0-20

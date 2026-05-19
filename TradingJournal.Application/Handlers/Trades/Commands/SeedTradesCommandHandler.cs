@@ -42,11 +42,11 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
                 var quantity = random.Next(1, 5);
                 var pnl = (exitPrice - entryPrice) * quantity * 100;
 
-                var hasSl = random.NextDouble() > 0.3;
-                var hasPt = random.NextDouble() > 0.3;
-                var hasPs = random.NextDouble() > 0.3;
-                var hasDte = random.NextDouble() > 0.3;
-                var ticked = (hasSl ? 5 : 0) + (hasPt ? 5 : 0) + (hasPs ? 5 : 0) + (hasDte ? 5 : 0);
+                var entryQ = random.Next(2, 6);   // 2-5
+                var exitQ = random.Next(2, 6);
+                var riskMgmt = random.Next(2, 6);
+                var planAdh = random.Next(2, 6);
+                var ticked = entryQ + exitQ + riskMgmt + planAdh;  // 8-20
                 var aiScore = random.Next(40, 75);
 
                 trades.Add(new Trade
@@ -63,10 +63,10 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
                     TradeDate = DateTime.UtcNow.AddDays(-random.Next(0, 30)),
                     Pnl = pnl,
                     Notes = "Seeded test trade",
-                    HasStopLoss = hasSl,
-                    HasProfitTarget = hasPt,
-                    HasPositionSizing = hasPs,
-                    HasAppropriateDte = hasDte,
+                    EntryQuality = entryQ,
+                    ExitQuality = exitQ,
+                    RiskManagement = riskMgmt,
+                    PlanAdherence = planAdh,
                     TickedScore = ticked,
                     AiScore = aiScore,
                     AiFeedback = "Seeded — no real AI analysis",

@@ -19,10 +19,10 @@ namespace TradingJournal.Contract.DTOs
         public string? ChartScreenshotUrl { get; set; }
         public int AiScore { get; set; }
         public string? AiFeedback { get; set; }
-        public bool HasStopLoss { get; set; }
-        public bool HasProfitTarget { get; set; }
-        public bool HasPositionSizing { get; set; }
-        public bool HasAppropriateDte { get; set; }
+        public int EntryQuality { get; set; }
+        public int ExitQuality { get; set; }
+        public int RiskManagement { get; set; }
+        public int PlanAdherence { get; set; }
         public int TickedScore { get; set; }
         public int DisciplineScore { get; set; }
         public DateTime CreatedAt { get; set; }

@@ -41,12 +41,8 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
             // Calculate P&L
             var pnl = (request.ExitPrice - request.EntryPrice) * request.Quantity * 100;
 
-            // Calculate ticked score (5 points each, max 20)
-            var tickedScore = 0;
-            if (request.HasStopLoss) tickedScore += 5;
-            if (request.HasProfitTarget) tickedScore += 5;
-            if (request.HasPositionSizing) tickedScore += 5;
-            if (request.HasAppropriateDte) tickedScore += 5;
+            // Ticked score = sum of 4 ratings (1-5 each) = 4-20
+            var tickedScore = request.EntryQuality + request.ExitQuality + request.RiskManagement + request.PlanAdherence;
 
             // Upload IBKR screenshot if provided
             string? ibkrScreenshotUrl = null;
@@ -120,10 +116,10 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
                 Notes = request.Notes,
                 IbkrScreenshotUrl = ibkrScreenshotUrl,
                 ChartScreenshotUrl = chartScreenshotUrl,
-                HasStopLoss = request.HasStopLoss,
-                HasProfitTarget = request.HasProfitTarget,
-                HasPositionSizing = request.HasPositionSizing,
-                HasAppropriateDte = request.HasAppropriateDte,
+                EntryQuality = request.EntryQuality,
+                ExitQuality = request.ExitQuality,
+                RiskManagement = request.RiskManagement,
+                PlanAdherence = request.PlanAdherence,
                 TickedScore = tickedScore,
                 AiScore = aiScore,
                 AiFeedback = aiFeedback,
