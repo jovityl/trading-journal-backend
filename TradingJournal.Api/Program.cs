@@ -39,8 +39,13 @@ builder.Services.AddSingleton<IAdminSettings, AdminSettings>();
 builder.Services.AddSingleton<IPromptService, PromptService>();
 builder.Services.AddScoped<ITokenUsageService, TokenUsageService>();
 builder.Services.AddHttpClient<IAiScoringService, ClaudeAiScoringService>();
-builder.Services.AddHttpClient<IChatService, ClaudeChatService>();
-builder.Services.AddHttpClient<IChatModerationService, ClaudeChatModerationService>();
+// Register both implementations as concrete types so router can pick between them
+builder.Services.AddHttpClient<ClaudeChatService>();
+builder.Services.AddHttpClient<OpenRouterChatService>();
+builder.Services.AddScoped<IChatServiceRouter, ChatServiceRouter>();
+// IChatService default → use router's choice (default Claude)
+builder.Services.AddScoped<IChatService>(sp => sp.GetRequiredService<IChatServiceRouter>().Resolve(null));
+builder.Services.AddHttpClient<IChatModerationService, OpenRouterModerationService>();
 
 // Auth0
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

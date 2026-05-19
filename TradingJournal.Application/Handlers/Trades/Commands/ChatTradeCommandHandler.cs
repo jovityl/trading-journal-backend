@@ -11,7 +11,7 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
     {
         private readonly ITradeRepository _tradeRepository;
         private readonly IUserRepository _userRepository;
-        private readonly IChatService _chatService;
+        private readonly IChatServiceRouter _chatRouter;
         private readonly IChatModerationService _moderationService;
         private readonly IPromptService _promptService;
         private readonly ITokenUsageService _tokenUsageService;
@@ -19,14 +19,14 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
         public ChatTradeCommandHandler(
             ITradeRepository tradeRepository,
             IUserRepository userRepository,
-            IChatService chatService,
+            IChatServiceRouter chatRouter,
             IChatModerationService moderationService,
             IPromptService promptService,
             ITokenUsageService tokenUsageService)
         {
             _tradeRepository = tradeRepository;
             _userRepository = userRepository;
-            _chatService = chatService;
+            _chatRouter = chatRouter;
             _moderationService = moderationService;
             _promptService = promptService;
             _tokenUsageService = tokenUsageService;
@@ -88,11 +88,13 @@ namespace TradingJournal.Application.Handlers.Trades.Commands
                     .Select(m => new ChatMessage { Role = m.Role, Content = m.Content })
                     .ToList();
 
-                var chatResult = await _chatService.ChatAsync(
+                var chatService = _chatRouter.Resolve(request.Model);
+                var chatResult = await chatService.ChatAsync(
                     systemPrompt,
                     imageStream,
                     imageContentType,
                     messages,
+                    request.Model,
                     cancellationToken);
 
                 await _tokenUsageService.RecordAsync(user.Id, "chat", chatResult.Usage, cancellationToken);

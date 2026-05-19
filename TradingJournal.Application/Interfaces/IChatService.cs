@@ -19,6 +19,7 @@ namespace TradingJournal.Application.Interfaces
             Stream? contextImageStream,
             string? contextImageContentType,
             List<ChatMessage> messages,
+            string? model = null,
             CancellationToken cancellationToken = default);
     }
 }

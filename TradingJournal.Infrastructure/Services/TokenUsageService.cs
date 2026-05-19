@@ -49,13 +49,28 @@ namespace TradingJournal.Infrastructure.Services
 
         private static (decimal input, decimal output, decimal cacheWrite, decimal cacheRead) GetRates(string model)
         {
-            if (model.Contains("haiku", StringComparison.OrdinalIgnoreCase))
-            {
-                // Claude Haiku: $1 input / $5 output / $1.25 cache write / $0.10 cache read per 1M
-                return (1m / 1_000_000m, 5m / 1_000_000m, 1.25m / 1_000_000m, 0.10m / 1_000_000m);
-            }
-            // Default: Claude Sonnet 4.5
-            return (3m / 1_000_000m, 15m / 1_000_000m, 3.75m / 1_000_000m, 0.30m / 1_000_000m);
+            var m = model.ToLowerInvariant();
+            // Free tiers — zero cost
+            if (m.Contains(":free")) return (0m, 0m, 0m, 0m);
+
+            // Claude
+            if (m.Contains("haiku")) return (1m / 1_000_000m, 5m / 1_000_000m, 1.25m / 1_000_000m, 0.10m / 1_000_000m);
+            if (m.Contains("sonnet")) return (3m / 1_000_000m, 15m / 1_000_000m, 3.75m / 1_000_000m, 0.30m / 1_000_000m);
+            if (m.Contains("opus")) return (15m / 1_000_000m, 75m / 1_000_000m, 18.75m / 1_000_000m, 1.5m / 1_000_000m);
+
+            // OpenAI
+            if (m.Contains("gpt-4o-mini")) return (0.15m / 1_000_000m, 0.60m / 1_000_000m, 0m, 0m);
+            if (m.Contains("gpt-5") || m.Contains("gpt-4o")) return (2.5m / 1_000_000m, 10m / 1_000_000m, 0m, 0m);
+
+            // DeepSeek
+            if (m.Contains("deepseek")) return (0.27m / 1_000_000m, 1.10m / 1_000_000m, 0m, 0m);
+
+            // Gemini
+            if (m.Contains("gemini-2.5-flash") || m.Contains("gemini-2.0-flash")) return (0.075m / 1_000_000m, 0.30m / 1_000_000m, 0m, 0m);
+            if (m.Contains("gemini-2.5-pro")) return (1.25m / 1_000_000m, 5m / 1_000_000m, 0m, 0m);
+
+            // Default to Sonnet rates so we don't underestimate
+            return (3m / 1_000_000m, 15m / 1_000_000m, 0m, 0m);
         }
     }
 }

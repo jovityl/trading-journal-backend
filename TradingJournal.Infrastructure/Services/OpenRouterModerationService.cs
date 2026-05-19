@@ -6,27 +6,28 @@ using TradingJournal.Application.Interfaces;
 namespace TradingJournal.Infrastructure.Services
 {
     /// <summary>
-    /// Classifies a user message as on-topic (trading-related) or off-topic
-    /// using Claude Haiku — ~10x cheaper than Sonnet.
+    /// Classifies user messages using a FREE OpenRouter model.
+    /// Defaults to DeepSeek V3 free — solid for simple classification tasks.
+    /// Falls back to "on-topic" if the call fails so users aren't blocked.
     /// </summary>
-    public class ClaudeChatModerationService : IChatModerationService
+    public class OpenRouterModerationService : IChatModerationService
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
-        private const string ApiUrl = "https://api.anthropic.com/v1/messages";
-        private const string Model = "claude-haiku-4-5";
+        private const string ApiUrl = "https://openrouter.ai/api/v1/chat/completions";
+        private const string Model = "meta-llama/llama-3.3-70b-instruct:free";
 
-        public ClaudeChatModerationService(HttpClient httpClient, IConfiguration config)
+        public OpenRouterModerationService(HttpClient httpClient, IConfiguration config)
         {
             _httpClient = httpClient;
-            _apiKey = config["Anthropic:ApiKey"] ?? throw new InvalidOperationException("Anthropic:ApiKey is not configured.");
+            _apiKey = config["OpenRouter:ApiKey"] ?? throw new InvalidOperationException("OpenRouter:ApiKey is not configured.");
         }
 
         public async Task<ModerationResult> IsOnTopicAsync(string userMessage, CancellationToken cancellationToken = default)
         {
             var prompt = $@"You are a strict classifier for a trading journal chatbot.
 
-The user's message will follow. Decide if it relates to:
+Decide if the user's message relates to:
 - Trading (any style: options, stocks, futures, crypto)
 - Trading psychology, discipline, strategy
 - The user's specific trade or their journal
@@ -49,34 +50,33 @@ User message: ""{userMessage}""";
             };
 
             var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl);
-            request.Headers.Add("x-api-key", _apiKey);
-            request.Headers.Add("anthropic-version", "2023-06-01");
+            request.Headers.Add("Authorization", $"Bearer {_apiKey}");
+            request.Headers.Add("HTTP-Referer", "https://trading-journal.local");
+            request.Headers.Add("X-Title", "Trading Journal");
             request.Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.SendAsync(request, cancellationToken);
-            var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                // If classifier fails, default to allowing the message (fail open)
-                return new ModerationResult { IsOnTopic = true };
-            }
 
             try
             {
+                var response = await _httpClient.SendAsync(request, cancellationToken);
+                var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    // fail open — don't block user if free tier is rate-limited
+                    return new ModerationResult { IsOnTopic = true };
+                }
+
                 using var doc = JsonDocument.Parse(responseString);
                 var text = doc.RootElement
-                    .GetProperty("content")[0]
-                    .GetProperty("text")
+                    .GetProperty("choices")[0]
+                    .GetProperty("message")
+                    .GetProperty("content")
                     .GetString() ?? "";
-
-                var usage = ClaudeAiScoringService.ParseUsage(doc.RootElement);
-                usage.Model = Model;
 
                 return new ModerationResult
                 {
                     IsOnTopic = text.Trim().ToUpperInvariant().StartsWith("ON"),
-                    Usage = usage
+                    Usage = OpenRouterChatService.ParseUsage(doc.RootElement, Model)
                 };
             }
             catch

@@ -80,13 +80,13 @@ namespace TradingJournal.Api.Controllers
             return await _sender.Send(command);
         }
 
-        public record ChatRequestBody(List<ChatMessageDto> Messages);
+        public record ChatRequestBody(List<ChatMessageDto> Messages, string? Model);
 
         [HttpPost("{id:guid}/chat")]
         public async Task<BaseResponse<string>> ChatWithTrade([FromRoute] Guid id, [FromBody] ChatRequestBody body)
         {
             var auth0Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
-            var command = new ChatTradeCommand(id, body.Messages, auth0Id);
+            var command = new ChatTradeCommand(id, body.Messages, auth0Id, body.Model);
             return await _sender.Send(command);
         }
 
